@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -19,7 +20,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -39,14 +39,27 @@ public class AppListActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(32, 32, 32, 32);
 
-        Button acc = new Button(this);
-        acc.setText("Ativar serviço de acessibilidade");
+        LinearLayout topo = new LinearLayout(this);
+        topo.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button acc = botaoGrande("Ativar acessibilidade");
         acc.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-        root.addView(acc);
+        topo.addView(acc);
+
+        Button trocarSenha = botaoGrande("Trocar senha");
+        LinearLayout.LayoutParams lpTs = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpTs.leftMargin = 16;
+        trocarSenha.setLayoutParams(lpTs);
+        trocarSenha.setOnClickListener(v -> startActivity(new Intent(this, ChangePasswordActivity.class)));
+        topo.addView(trocarSenha);
+
+        root.addView(topo);
 
         TextView dica = new TextView(this);
         dica.setText("Ative \"Bloqueio de Apps\" na lista que abrir. Depois marque abaixo os apps a bloquear.");
-        dica.setPadding(0, 8, 0, 24);
+        dica.setTextSize(14);
+        dica.setPadding(0, 16, 0, 24);
         root.addView(dica);
 
         ScrollView scroll = new ScrollView(this);
@@ -58,6 +71,16 @@ public class AppListActivity extends Activity {
 
         setContentView(root);
         popularLista(list);
+        acc.requestFocus();
+    }
+
+    private Button botaoGrande(String texto) {
+        Button btn = new Button(this);
+        btn.setText(texto);
+        btn.setTextSize(16);
+        btn.setPadding(24, 20, 24, 20);
+        btn.setFocusable(true);
+        return btn;
     }
 
     private void popularLista(LinearLayout list) {
@@ -68,6 +91,7 @@ public class AppListActivity extends Activity {
         apps.sort((a, c) -> a.loadLabel(pm).toString().compareToIgnoreCase(c.loadLabel(pm).toString()));
 
         Set<String> blocked = new HashSet<>(prefs.getStringSet("blocked_apps", new HashSet<>()));
+        Button anterior = null;
 
         for (ResolveInfo ri : apps) {
             String pkg = ri.activityInfo.packageName;
@@ -76,37 +100,50 @@ public class AppListActivity extends Activity {
 
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(0, 8, 0, 8);
+            row.setPadding(0, 12, 0, 12);
 
             CheckBox cb = new CheckBox(this);
             cb.setText(label);
+            cb.setTextSize(17);
+            cb.setFocusable(true);
             cb.setChecked(blocked.contains(pkg));
             row.addView(cb);
 
             LinearLayout sub = new LinearLayout(this);
             sub.setOrientation(LinearLayout.HORIZONTAL);
             sub.setGravity(Gravity.CENTER_VERTICAL);
-            sub.setPadding(48, 4, 0, 4);
+            sub.setPadding(48, 8, 0, 4);
             sub.setVisibility(cb.isChecked() ? View.VISIBLE : View.GONE);
+
+            int minutosSalvos = prefs.getInt("minutes_" + pkg, 10);
 
             EditText minutos = new EditText(this);
             minutos.setInputType(InputType.TYPE_CLASS_NUMBER);
             minutos.setHint("min");
-            minutos.setWidth(150);
+            minutos.setText(String.valueOf(minutosSalvos));
+            minutos.setTextSize(17);
+            minutos.setFocusable(true);
+            minutos.setFocusableInTouchMode(true);
+            minutos.setLayoutParams(new LinearLayout.LayoutParams(160, ViewGroup.LayoutParams.WRAP_CONTENT));
             sub.addView(minutos);
 
-            Button liberar = new Button(this);
-            liberar.setText("Liberar agora");
+            Button liberar = botaoGrande("Liberar agora");
+            LinearLayout.LayoutParams lpLib = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lpLib.leftMargin = 16;
+            liberar.setLayoutParams(lpLib);
             sub.addView(liberar);
 
             TextView status = new TextView(this);
-            status.setPadding(16, 0, 0, 0);
+            status.setTextSize(15);
+            status.setPadding(24, 0, 0, 0);
             atualizarStatus(status, pkg);
             sub.addView(status);
 
             liberar.setOnClickListener(v -> {
                 int min = 10;
                 try { min = Integer.parseInt(minutos.getText().toString()); } catch (Exception ignored) {}
+                prefs.edit().putInt("minutes_" + pkg, min).apply();
                 long ate = System.currentTimeMillis() + min * 60000L;
                 prefs.edit().putLong("unlock_" + pkg, ate).apply();
                 atualizarStatus(status, pkg);
@@ -122,6 +159,12 @@ public class AppListActivity extends Activity {
 
             row.addView(sub);
             list.addView(row);
+
+            if (anterior != null) {
+                anterior.setNextFocusDownId(cb.hashCode());
+            }
+            cb.setId(View.generateViewId());
+            anterior = liberar;
         }
     }
 
