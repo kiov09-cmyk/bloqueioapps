@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
         root.addView(title);
 
         input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         input.setHint("Senha");
         input.setFocusable(true);
         input.setFocusableInTouchMode(true);
@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
 
         if (!hasPassword) {
             confirm = new EditText(this);
-            confirm.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            confirm.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
             confirm.setHint("Confirme a senha");
             confirm.setFocusable(true);
             confirm.setFocusableInTouchMode(true);

@@ -69,7 +69,7 @@ public class ChangePasswordActivity extends Activity {
 
     private EditText campo(LinearLayout root, String hint) {
         EditText e = new EditText(this);
-        e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        e.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         e.setHint(hint);
         e.setFocusable(true);
         e.setFocusableInTouchMode(true);

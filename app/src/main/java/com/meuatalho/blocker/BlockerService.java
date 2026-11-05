@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.accessibility.AccessibilityEvent;
 
 import java.util.HashSet;
@@ -14,6 +16,15 @@ import java.util.Set;
 public class BlockerService extends AccessibilityService {
 
     private String homePkg;
+    private String currentPkg = "";
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable checker = new Runnable() {
+        @Override
+        public void run() {
+            verificarBloqueio(currentPkg);
+            handler.postDelayed(this, 1000);
+        }
+    };
 
     @Override
     protected void onServiceConnected() {
@@ -28,6 +39,8 @@ public class BlockerService extends AccessibilityService {
         Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
         ResolveInfo ri = pm.resolveActivity(home, 0);
         homePkg = (ri != null && ri.activityInfo != null) ? ri.activityInfo.packageName : null;
+
+        handler.post(checker);
     }
 
     @Override
@@ -35,8 +48,12 @@ public class BlockerService extends AccessibilityService {
         if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return;
         CharSequence pkgCs = event.getPackageName();
         if (pkgCs == null) return;
-        String pkg = pkgCs.toString();
+        currentPkg = pkgCs.toString();
+        verificarBloqueio(currentPkg);
+    }
 
+    private void verificarBloqueio(String pkg) {
+        if (pkg == null || pkg.isEmpty()) return;
         if (pkg.equals(getPackageName())) return;
         if (pkg.equals(homePkg)) return;
         if (pkg.equals("com.android.settings") || pkg.equals("com.android.tv.settings")) return;
@@ -53,4 +70,10 @@ public class BlockerService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(checker);
+    }
 }
