@@ -58,6 +58,7 @@ public class ChangePasswordActivity extends Activity {
                 return;
             }
             prefs.edit().putString("password", n).apply();
+            BackupHelper.backupNow(this);
             Toast.makeText(this, "Senha alterada", Toast.LENGTH_SHORT).show();
             finish();
         });

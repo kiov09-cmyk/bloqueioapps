@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        BackupHelper.restoreIfNeeded(this);
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         hasPassword = prefs.contains("password");
 
@@ -84,6 +85,7 @@ public class MainActivity extends Activity {
                 return;
             }
             p.edit().putString("password", val).apply();
+            BackupHelper.backupNow(this);
             abrirLista();
         } else if (p.getString("password", "").equals(val)) {
             abrirLista();

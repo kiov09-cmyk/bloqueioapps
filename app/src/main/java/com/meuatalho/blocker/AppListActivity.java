@@ -29,11 +29,17 @@ import java.util.Set;
 public class AppListActivity extends Activity {
 
     private SharedPreferences prefs;
+    private String homePkg;
 
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+
+        PackageManager pm = getPackageManager();
+        Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
+        ResolveInfo ri = pm.resolveActivity(home, 0);
+        homePkg = (ri != null && ri.activityInfo != null) ? ri.activityInfo.packageName : null;
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -57,7 +63,7 @@ public class AppListActivity extends Activity {
         root.addView(topo);
 
         TextView dica = new TextView(this);
-        dica.setText("Ative \"Bloqueio de Apps\" na lista que abrir. Depois marque abaixo os apps a bloquear.");
+        dica.setText("Ative \"Bloqueio de Apps\" na lista que abrir. Depois marque abaixo os apps a bloquear.\n(O launcher e as Configurações não aparecem aqui, por segurança.)");
         dica.setTextSize(14);
         dica.setPadding(0, 16, 0, 24);
         root.addView(dica);
@@ -91,11 +97,14 @@ public class AppListActivity extends Activity {
         apps.sort((a, c) -> a.loadLabel(pm).toString().compareToIgnoreCase(c.loadLabel(pm).toString()));
 
         Set<String> blocked = new HashSet<>(prefs.getStringSet("blocked_apps", new HashSet<>()));
-        Button anterior = null;
 
         for (ResolveInfo ri : apps) {
             String pkg = ri.activityInfo.packageName;
             if (pkg.equals(getPackageName())) continue;
+            if (pkg.equals(homePkg)) continue;
+            if (pkg.equals("com.android.settings") || pkg.equals("com.android.tv.settings")) continue;
+            if (ehLauncher(pm, pkg)) continue;
+
             String label = ri.loadLabel(pm).toString();
 
             LinearLayout row = new LinearLayout(this);
@@ -127,7 +136,7 @@ public class AppListActivity extends Activity {
             minutos.setLayoutParams(new LinearLayout.LayoutParams(160, ViewGroup.LayoutParams.WRAP_CONTENT));
             sub.addView(minutos);
 
-            Button liberar = botaoGrande("Liberar agora");
+            Button liberar = botaoGrande("Liberar e abrir");
             LinearLayout.LayoutParams lpLib = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lpLib.leftMargin = 16;
@@ -147,25 +156,32 @@ public class AppListActivity extends Activity {
                 long ate = System.currentTimeMillis() + min * 60000L;
                 prefs.edit().putLong("unlock_" + pkg, ate).apply();
                 atualizarStatus(status, pkg);
+                BackupHelper.backupNow(this);
                 Toast.makeText(this, label + " liberado por " + min + " min", Toast.LENGTH_SHORT).show();
+                Intent launch = pm.getLaunchIntentForPackage(pkg);
+                if (launch != null) startActivity(launch);
             });
 
             cb.setOnCheckedChangeListener((btn, checked) -> {
                 Set<String> atual = new HashSet<>(prefs.getStringSet("blocked_apps", new HashSet<>()));
                 if (checked) atual.add(pkg); else atual.remove(pkg);
                 prefs.edit().putStringSet("blocked_apps", atual).apply();
+                BackupHelper.backupNow(this);
                 sub.setVisibility(checked ? View.VISIBLE : View.GONE);
             });
 
             row.addView(sub);
             list.addView(row);
-
-            if (anterior != null) {
-                anterior.setNextFocusDownId(cb.hashCode());
-            }
-            cb.setId(View.generateViewId());
-            anterior = liberar;
         }
+    }
+
+    private boolean ehLauncher(PackageManager pm, String pkg) {
+        Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
+        List<ResolveInfo> launchers = pm.queryIntentActivities(home, 0);
+        for (ResolveInfo l : launchers) {
+            if (l.activityInfo.packageName.equals(pkg)) return true;
+        }
+        return false;
     }
 
     private void atualizarStatus(TextView status, String pkg) {
