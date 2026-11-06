@@ -7,8 +7,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.PixelFormat;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
@@ -21,6 +25,7 @@ import java.util.Set;
 
 public class BlockerService extends AccessibilityService {
 
+    private static final String TAG = "BlockerService";
     private static final int[] MARCOS = {10, 5, 2, 1};
 
     private String homePkg;
@@ -51,6 +56,7 @@ public class BlockerService extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
+        Log.d(TAG, "onServiceConnected");
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
@@ -61,8 +67,10 @@ public class BlockerService extends AccessibilityService {
         Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
         ResolveInfo ri = pm.resolveActivity(home, 0);
         homePkg = (ri != null && ri.activityInfo != null) ? ri.activityInfo.packageName : null;
+        Log.d(TAG, "homePkg=" + homePkg);
 
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        handler.removeCallbacks(checker);
         handler.post(checker);
     }
 
@@ -72,6 +80,7 @@ public class BlockerService extends AccessibilityService {
         CharSequence pkgCs = event.getPackageName();
         if (pkgCs == null) return;
         currentPkg = pkgCs.toString();
+        Log.d(TAG, "janela mudou para: " + currentPkg);
         verificarBloqueio(currentPkg);
     }
 
@@ -85,8 +94,11 @@ public class BlockerService extends AccessibilityService {
         Set<String> blocked = prefs.getStringSet("blocked_apps", new HashSet<>());
         if (blocked.contains(pkg)) {
             long until = prefs.getLong("unlock_" + pkg, 0);
-            if (System.currentTimeMillis() > until) {
-                performGlobalAction(GLOBAL_ACTION_HOME);
+            long agora = System.currentTimeMillis();
+            Log.d(TAG, "pkg bloqueado=" + pkg + " until=" + until + " agora=" + agora + " expirado=" + (agora > until));
+            if (agora > until) {
+                boolean ok = performGlobalAction(GLOBAL_ACTION_HOME);
+                Log.d(TAG, "performGlobalAction HOME retornou=" + ok);
             }
         }
     }
@@ -121,6 +133,7 @@ public class BlockerService extends AccessibilityService {
                     } catch (Exception e) { label = pkg; }
                     String texto = marco <= 1 ? label + ": menos de 1 minuto" : label + ": faltam " + marco + " minutos";
                     mostrarAviso(texto);
+                    tocarSom();
                 }
             }
         }
@@ -130,7 +143,7 @@ public class BlockerService extends AccessibilityService {
         overlayHandler.removeCallbacks(esconderAviso);
         if (overlayView == null) {
             overlayView = new TextView(this);
-            overlayView.setBackgroundColor(0xDD000000);
+            overlayView.setBackgroundColor(0x99000000);
             overlayView.setTextColor(0xFFFFFFFF);
             overlayView.setTextSize(24);
             overlayView.setPadding(60, 36, 60, 36);
@@ -145,12 +158,36 @@ public class BlockerService extends AccessibilityService {
             try {
                 wm.addView(overlayView, lp);
             } catch (Exception e) {
+                Log.d(TAG, "falha ao mostrar overlay: " + e);
                 overlayView = null;
                 return;
             }
         }
         overlayView.setText(texto);
         overlayHandler.postDelayed(esconderAviso, 6000);
+    }
+
+    private void tocarSom() {
+        try {
+            SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+            String uriStr = prefs.getString("alert_sound_uri", null);
+            if (uriStr == null) return;
+            int volPct = prefs.getInt("alert_volume", 50);
+            float vol = Math.max(0f, Math.min(1f, volPct / 100f));
+
+            MediaPlayer mp = new MediaPlayer();
+            mp.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+            mp.setDataSource(this, Uri.parse(uriStr));
+            mp.setVolume(vol, vol);
+            mp.setOnCompletionListener(MediaPlayer::release);
+            mp.prepare();
+            mp.start();
+        } catch (Exception e) {
+            Log.d(TAG, "falha ao tocar som: " + e);
+        }
     }
 
     @Override

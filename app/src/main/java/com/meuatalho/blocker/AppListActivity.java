@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
@@ -16,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +63,49 @@ public class AppListActivity extends Activity {
         trocarSenha.setOnClickListener(v -> startActivity(new Intent(this, ChangePasswordActivity.class)));
         topo.addView(trocarSenha);
 
+        Button somBtn = botaoGrande("Escolher som");
+        LinearLayout.LayoutParams lpSom = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpSom.leftMargin = 16;
+        somBtn.setLayoutParams(lpSom);
+        somBtn.setOnClickListener(v -> {
+            Intent picker = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+            picker.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
+            picker.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+            picker.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true);
+            String atual = prefs.getString("alert_sound_uri", null);
+            if (atual != null) picker.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(atual));
+            startActivityForResult(picker, 100);
+        });
+        topo.addView(somBtn);
+
         root.addView(topo);
+
+        LinearLayout volRow = new LinearLayout(this);
+        volRow.setOrientation(LinearLayout.HORIZONTAL);
+        volRow.setGravity(Gravity.CENTER_VERTICAL);
+        volRow.setPadding(0, 16, 0, 0);
+        TextView volLabel = new TextView(this);
+        int volInicial = prefs.getInt("alert_volume", 50);
+        volLabel.setText("Volume do alerta: " + volInicial + "%");
+        volLabel.setTextSize(14);
+        volRow.addView(volLabel);
+        SeekBar seek = new SeekBar(this);
+        seek.setMax(100);
+        seek.setProgress(volInicial);
+        LinearLayout.LayoutParams lpSeek = new LinearLayout.LayoutParams(400, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpSeek.leftMargin = 16;
+        seek.setLayoutParams(lpSeek);
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int progress, boolean fromUser) {
+                volLabel.setText("Volume do alerta: " + progress + "%");
+                prefs.edit().putInt("alert_volume", progress).apply();
+            }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) { BackupHelper.backupNow(AppListActivity.this); }
+        });
+        volRow.addView(seek);
+        root.addView(volRow);
 
         TextView dica = new TextView(this);
         dica.setText("Ative \"Bloqueio de Apps\" na lista que abrir. Depois marque abaixo os apps a bloquear.\n(O launcher e as Configurações não aparecem aqui, por segurança.)");
@@ -78,6 +123,22 @@ public class AppListActivity extends Activity {
         setContentView(root);
         popularLista(list);
         acc.requestFocus();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100 && data != null) {
+            Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+            if (uri != null) {
+                prefs.edit().putString("alert_sound_uri", uri.toString()).apply();
+                Toast.makeText(this, "Som de alerta definido", Toast.LENGTH_SHORT).show();
+            } else {
+                prefs.edit().remove("alert_sound_uri").apply();
+                Toast.makeText(this, "Alerta sonoro desativado (silencioso)", Toast.LENGTH_SHORT).show();
+            }
+            BackupHelper.backupNow(this);
+        }
     }
 
     private Button botaoGrande(String texto) {
