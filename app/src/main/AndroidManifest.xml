@@ -17,6 +17,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter>
