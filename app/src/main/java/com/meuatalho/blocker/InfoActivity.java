@@ -22,6 +22,19 @@ public class InfoActivity extends Activity {
             "adb shell settings get secure enabled_accessibility_services\n" +
             "adb shell ps | grep meuatalho";
 
+    private static final String COMANDO_INSTALAR =
+            "adb root\n" +
+            "adb remount\n" +
+            "adb shell mkdir -p /system/app/BloqueioApps\n" +
+            "adb push app-debug.apk /system/app/BloqueioApps/BloqueioApps.apk\n" +
+            "adb shell chmod 644 /system/app/BloqueioApps/BloqueioApps.apk\n" +
+            "adb shell pm uninstall --user 0 com.meuatalho.blocker\n" +
+            "adb reboot\n" +
+            "# depois do boot:\n" +
+            "adb shell pm grant com.meuatalho.blocker android.permission.WRITE_SECURE_SETTINGS\n" +
+            "adb shell settings put secure enabled_accessibility_services com.meuatalho.blocker/com.meuatalho.blocker.BlockerService\n" +
+            "adb shell settings put secure accessibility_enabled 1";
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -49,6 +62,7 @@ public class InfoActivity extends Activity {
 
         root.addView(blocoComando("Reativar acessibilidade", COMANDO_REATIVAR));
         root.addView(blocoComando("Verificar status", COMANDO_VERIFICAR));
+        root.addView(blocoComando("Instalar como app de sistema (novo APK)", COMANDO_INSTALAR));
 
         Button voltar = new Button(this);
         voltar.setText("Voltar");
