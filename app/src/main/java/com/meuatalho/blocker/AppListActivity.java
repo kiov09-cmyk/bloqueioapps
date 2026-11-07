@@ -37,7 +37,7 @@ public class AppListActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+        prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
 
         PackageManager pm = getPackageManager();
         Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
@@ -78,6 +78,14 @@ public class AppListActivity extends Activity {
             startActivityForResult(picker, 100);
         });
         topo.addView(somBtn);
+
+        Button infoBtn = botaoGrande("Informações");
+        LinearLayout.LayoutParams lpInfo = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpInfo.leftMargin = 16;
+        infoBtn.setLayoutParams(lpInfo);
+        infoBtn.setOnClickListener(v -> startActivity(new Intent(this, InfoActivity.class)));
+        topo.addView(infoBtn);
 
         root.addView(topo);
 

@@ -90,7 +90,7 @@ public class BlockerService extends AccessibilityService {
         if (pkg.equals(homePkg)) return;
         if (pkg.equals("com.android.settings") || pkg.equals("com.android.tv.settings")) return;
 
-        SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
         Set<String> blocked = prefs.getStringSet("blocked_apps", new HashSet<>());
         if (blocked.contains(pkg)) {
             long until = prefs.getLong("unlock_" + pkg, 0);
@@ -104,7 +104,7 @@ public class BlockerService extends AccessibilityService {
     }
 
     private void verificarAvisos() {
-        SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
         Set<String> blocked = prefs.getStringSet("blocked_apps", new HashSet<>());
         long agora = System.currentTimeMillis();
         PackageManager pm = getPackageManager();
@@ -169,7 +169,7 @@ public class BlockerService extends AccessibilityService {
 
     private void tocarSom() {
         try {
-            SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE);
+            SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
             String uriStr = prefs.getString("alert_sound_uri", null);
             if (uriStr == null) return;
             int volPct = prefs.getInt("alert_volume", 50);
