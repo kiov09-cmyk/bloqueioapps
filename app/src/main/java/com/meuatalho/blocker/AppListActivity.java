@@ -135,6 +135,19 @@ public class AppListActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        String pendentePkg = prefs.getString("pending_pkg", null);
+        String pendenteLabel = prefs.getString("pending_label", null);
+        int pendenteMin = prefs.getInt("pending_min", -1);
+
+        if (pendentePkg != null && pendenteMin > 0 && AccessibilityHelper.isEnabled(this)) {
+            liberarEAbrir(pendentePkg, pendenteLabel != null ? pendenteLabel : pendentePkg, pendenteMin, null);
+            prefs.edit().remove("pending_pkg").remove("pending_label").remove("pending_min").apply();
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && data != null) {
@@ -223,13 +236,20 @@ public class AppListActivity extends Activity {
                 int min = 10;
                 try { min = Integer.parseInt(minutos.getText().toString()); } catch (Exception ignored) {}
                 prefs.edit().putInt("minutes_" + pkg, min).apply();
-                long ate = System.currentTimeMillis() + min * 60000L;
-                prefs.edit().putLong("unlock_" + pkg, ate).apply();
-                atualizarStatus(status, pkg);
-                BackupHelper.backupNow(this);
-                Toast.makeText(this, label + " liberado por " + min + " min", Toast.LENGTH_SHORT).show();
-                Intent launch = pm.getLaunchIntentForPackage(pkg);
-                if (launch != null) startActivity(launch);
+
+                if (AccessibilityHelper.isEnabled(this)) {
+                    liberarEAbrir(pkg, label, min, status);
+                } else {
+                    prefs.edit()
+                            .putString("pending_pkg", pkg)
+                            .putString("pending_label", label)
+                            .putInt("pending_min", min)
+                            .apply();
+                    Toast.makeText(this,
+                            "Acessibilidade desligada. Ative para liberar " + label + ".",
+                            Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                }
             });
 
             cb.setOnCheckedChangeListener((btn, checked) -> {
@@ -243,6 +263,16 @@ public class AppListActivity extends Activity {
             row.addView(sub);
             list.addView(row);
         }
+    }
+
+    private void liberarEAbrir(String pkg, String label, int min, TextView status) {
+        long ate = System.currentTimeMillis() + min * 60000L;
+        prefs.edit().putLong("unlock_" + pkg, ate).apply();
+        if (status != null) atualizarStatus(status, pkg);
+        BackupHelper.backupNow(this);
+        Toast.makeText(this, label + " liberado por " + min + " min", Toast.LENGTH_SHORT).show();
+        Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+        if (launch != null) startActivity(launch);
     }
 
     private boolean ehLauncher(PackageManager pm, String pkg) {

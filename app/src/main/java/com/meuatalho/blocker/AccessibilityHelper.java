@@ -19,4 +19,9 @@ public class AccessibilityHelper {
             // permissao WRITE_SECURE_SETTINGS ainda nao concedida
         }
     }
+
+    public static boolean isEnabled(Context ctx) {
+        String atual = Settings.Secure.getString(ctx.getContentResolver(), "enabled_accessibility_services");
+        return atual != null && atual.contains(SERVICE);
+    }
 }
