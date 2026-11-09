@@ -23,17 +23,22 @@ public class InfoActivity extends Activity {
             "adb shell ps | grep meuatalho";
 
     private static final String COMANDO_INSTALAR =
+            "adb connect 192.168.50.32:5555\n" +
             "adb root\n" +
             "adb remount\n" +
             "adb shell mkdir -p /system/app/BloqueioApps\n" +
-            "adb push app-debug.apk /system/app/BloqueioApps/BloqueioApps.apk\n" +
+            "adb shell rm -f /system/app/BloqueioApps/BloqueioApps.apk\n" +
+            "adb push AppBlock.apk /system/app/BloqueioApps/BloqueioApps.apk\n" +
             "adb shell chmod 644 /system/app/BloqueioApps/BloqueioApps.apk\n" +
             "adb shell pm uninstall --user 0 com.meuatalho.blocker\n" +
             "adb reboot\n" +
             "# depois do boot:\n" +
+            "adb connect 192.168.50.32:5555\n" +
+            "adb root\n" +
             "adb shell pm grant com.meuatalho.blocker android.permission.WRITE_SECURE_SETTINGS\n" +
             "adb shell settings put secure enabled_accessibility_services com.meuatalho.blocker/com.meuatalho.blocker.BlockerService\n" +
-            "adb shell settings put secure accessibility_enabled 1";
+            "adb shell settings put secure accessibility_enabled 1\n" +
+            "adb shell settings get secure enabled_accessibility_services";
 
     @Override
     protected void onCreate(Bundle b) {
