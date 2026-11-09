@@ -32,16 +32,19 @@
         <activity
             android:name=".AppListActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
         <activity
             android:name=".ChangePasswordActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
         <activity
             android:name=".InfoActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
         <receiver
