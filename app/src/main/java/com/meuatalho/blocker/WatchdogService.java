@@ -23,7 +23,6 @@ public class WatchdogService extends Service {
 
     private static final String TAG = "WatchdogService";
     private static final String CHANNEL = "watchdog";
-    private static final long INTERVALO_MS = 15000;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -31,7 +30,7 @@ public class WatchdogService extends Service {
         @Override
         public void run() {
             verificar();
-            handler.postDelayed(this, INTERVALO_MS);
+            handler.postDelayed(this, ConfigHelper.getIntervaloWatchdog(WatchdogService.this));
         }
     };
 

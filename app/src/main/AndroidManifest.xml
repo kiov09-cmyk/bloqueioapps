@@ -49,6 +49,24 @@
             android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
+        <activity
+            android:name=".AlertasActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
+            android:name=".RefreshActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"

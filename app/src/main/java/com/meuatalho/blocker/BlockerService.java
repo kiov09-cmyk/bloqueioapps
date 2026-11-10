@@ -26,7 +26,6 @@ import java.util.Set;
 public class BlockerService extends AccessibilityService {
 
     private static final String TAG = "BlockerService";
-    private static final int[] MARCOS = {10, 5, 2, 1};
 
     private String homePkg;
     private String currentPkg = "";
@@ -49,7 +48,7 @@ public class BlockerService extends AccessibilityService {
         public void run() {
             verificarBloqueio(currentPkg);
             verificarAvisos();
-            handler.postDelayed(this, 12000);
+            handler.postDelayed(this, ConfigHelper.getIntervaloBlocker(BlockerService.this));
         }
     };
 
@@ -118,13 +117,13 @@ public class BlockerService extends AccessibilityService {
                 ultimoUnlockVisto.put(pkg, until);
                 int totalMin = prefs.getInt("minutes_" + pkg, 10);
                 Set<Integer> jaPassados = new HashSet<>();
-                for (int m : MARCOS) if (m >= totalMin) jaPassados.add(m);
+                for (int m : ConfigHelper.getMarcos(this)) if (m >= totalMin) jaPassados.add(m);
                 marcosAvisados.put(pkg, jaPassados);
             }
             Set<Integer> avisados = marcosAvisados.get(pkg);
 
             long restanteMin = (until - agora) / 60000L + 1;
-            for (int marco : MARCOS) {
+            for (int marco : ConfigHelper.getMarcos(this)) {
                 if (restanteMin <= marco && !avisados.contains(marco)) {
                     avisados.add(marco);
                     String label;

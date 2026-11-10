@@ -51,10 +51,22 @@ public class InfoActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("Informações e comandos úteis");
+        title.setText("Root+ — instalação como app de sistema");
         title.setTextSize(22);
         title.setPadding(0, 0, 0, 24);
         root.addView(title);
+
+        TextView beneficios = new TextView(this);
+        beneficios.setText("Instalar o Bloqueio de Apps como app de sistema (via root/ADB) traz dois " +
+                "benefícios: 1) a acessibilidade volta a ser ativada sozinha depois de um reboot, sem " +
+                "precisar reabrir o app manualmente; 2) o app resiste a ser removido pela lista normal " +
+                "de apps instalados, já que a cópia em /system/app permanece mesmo após uma " +
+                "desinstalação comum. Sem root, o app continua funcionando normalmente, mas exige " +
+                "reativar a acessibilidade manualmente depois de cada reboot (o próprio app já guia " +
+                "esse passo ao tentar liberar um app) e pode ser desinstalado como qualquer outro.");
+        beneficios.setTextSize(15);
+        beneficios.setPadding(0, 0, 0, 20);
+        root.addView(beneficios);
 
         TextView aviso = new TextView(this);
         aviso.setText("Toda vez que o app for reinstalado ou atualizado, o Android desativa " +

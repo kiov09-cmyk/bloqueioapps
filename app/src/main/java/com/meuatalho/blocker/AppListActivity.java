@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -87,7 +88,7 @@ public class AppListActivity extends Activity {
         });
         topo.addView(somBtn);
 
-        Button infoBtn = botaoGrande("Informações");
+        Button infoBtn = botaoGrande("Root+");
         LinearLayout.LayoutParams lpInfo = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lpInfo.leftMargin = 16;
@@ -95,7 +96,33 @@ public class AppListActivity extends Activity {
         infoBtn.setOnClickListener(v -> startActivity(new Intent(this, InfoActivity.class)));
         topo.addView(infoBtn);
 
-        root.addView(topo);
+        Button alertasBtn = botaoGrande("Alertas");
+        LinearLayout.LayoutParams lpAlertas = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpAlertas.leftMargin = 16;
+        alertasBtn.setLayoutParams(lpAlertas);
+        alertasBtn.setOnClickListener(v -> startActivity(new Intent(this, AlertasActivity.class)));
+        topo.addView(alertasBtn);
+
+        Button refreshBtn = botaoGrande("Refresh");
+        LinearLayout.LayoutParams lpRefresh = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpRefresh.leftMargin = 16;
+        refreshBtn.setLayoutParams(lpRefresh);
+        refreshBtn.setOnClickListener(v -> startActivity(new Intent(this, RefreshActivity.class)));
+        topo.addView(refreshBtn);
+
+        Button sobreBtn = botaoGrande("Sobre");
+        LinearLayout.LayoutParams lpSobre = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lpSobre.leftMargin = 16;
+        sobreBtn.setLayoutParams(lpSobre);
+        sobreBtn.setOnClickListener(v -> startActivity(new Intent(this, AboutActivity.class)));
+        topo.addView(sobreBtn);
+
+        HorizontalScrollView topoScroll = new HorizontalScrollView(this);
+        topoScroll.addView(topo);
+        root.addView(topoScroll);
 
         LinearLayout volRow = new LinearLayout(this);
         volRow.setOrientation(LinearLayout.HORIZONTAL);
