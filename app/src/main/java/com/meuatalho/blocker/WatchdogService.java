@@ -23,7 +23,7 @@ public class WatchdogService extends Service {
 
     private static final String TAG = "WatchdogService";
     private static final String CHANNEL = "watchdog";
-    private static final long INTERVALO_MS = 5000;
+    private static final long INTERVALO_MS = 15000;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 

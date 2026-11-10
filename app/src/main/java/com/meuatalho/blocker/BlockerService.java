@@ -49,7 +49,7 @@ public class BlockerService extends AccessibilityService {
         public void run() {
             verificarBloqueio(currentPkg);
             verificarAvisos();
-            handler.postDelayed(this, 1000);
+            handler.postDelayed(this, 12000);
         }
     };
 
