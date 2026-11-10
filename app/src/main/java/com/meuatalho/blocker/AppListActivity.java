@@ -40,6 +40,13 @@ public class AppListActivity extends Activity {
         prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
         AccessibilityHelper.ativar(this);
 
+        Intent watchdog = new Intent(this, WatchdogService.class);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(watchdog);
+        } else {
+            startService(watchdog);
+        }
+
         PackageManager pm = getPackageManager();
         Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
         ResolveInfo ri = pm.resolveActivity(home, 0);
