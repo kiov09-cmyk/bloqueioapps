@@ -96,14 +96,6 @@ public class AppListActivity extends Activity {
         infoBtn.setOnClickListener(v -> startActivity(new Intent(this, InfoActivity.class)));
         topo.addView(infoBtn);
 
-        Button autostartBtn = botaoGrande("Autostart");
-        LinearLayout.LayoutParams lpAutostart = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lpAutostart.leftMargin = 16;
-        autostartBtn.setLayoutParams(lpAutostart);
-        autostartBtn.setOnClickListener(v -> startActivity(new Intent(this, AutostartActivity.class)));
-        topo.addView(autostartBtn);
-
         Button alertasBtn = botaoGrande("Alertas");
         LinearLayout.LayoutParams lpAlertas = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
