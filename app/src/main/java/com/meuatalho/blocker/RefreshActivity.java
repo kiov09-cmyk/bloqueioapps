@@ -31,7 +31,7 @@ public class RefreshActivity extends Activity {
         root.addView(title);
 
         TextView dica = new TextView(this);
-        dica.setText("Define de quanto em quanto tempo o app confere se deve bloquear (Bloqueio) e se a acessibilidade continua ativa (Watchdog). Mínimo de 5 segundos em cada um — valores menores são ajustados automaticamente para 5.");
+        dica.setText("Define de quanto em quanto tempo o app confere se deve bloquear (Bloqueio) e se a acessibilidade continua ativa (Watchdog). Mínimo de " + (ConfigHelper.MIN_INTERVALO_MS / 1000) + " segundo(s) em cada um — valores menores são ajustados automaticamente.");
         dica.setTextSize(14);
         dica.setPadding(0, 0, 0, 24);
         root.addView(dica);
@@ -103,7 +103,7 @@ public class RefreshActivity extends Activity {
         }
         ConfigHelper.setIntervaloBlocker(this, blockerMs);
         ConfigHelper.setIntervaloWatchdog(this, watchdogMs);
-        Toast.makeText(this, "Intervalos salvos (mínimo de 5s aplicado automaticamente)", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Intervalos salvos (mínimo de " + (ConfigHelper.MIN_INTERVALO_MS / 1000) + "s aplicado automaticamente)", Toast.LENGTH_LONG).show();
         finish();
     }
 
