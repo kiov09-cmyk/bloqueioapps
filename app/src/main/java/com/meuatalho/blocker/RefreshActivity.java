@@ -103,7 +103,9 @@ public class RefreshActivity extends Activity {
         }
         ConfigHelper.setIntervaloBlocker(this, blockerMs);
         ConfigHelper.setIntervaloWatchdog(this, watchdogMs);
-        Toast.makeText(this, "Intervalos salvos (mínimo de " + (ConfigHelper.MIN_INTERVALO_MS / 1000) + "s aplicado automaticamente)", Toast.LENGTH_LONG).show();
+        long blockerSalvoS = ConfigHelper.getIntervaloBlocker(this) / 1000;
+        long watchdogSalvoS = ConfigHelper.getIntervaloWatchdog(this) / 1000;
+        Toast.makeText(this, "Salvo: Bloqueio=" + blockerSalvoS + "s, Watchdog=" + watchdogSalvoS + "s", Toast.LENGTH_LONG).show();
         finish();
     }
 
