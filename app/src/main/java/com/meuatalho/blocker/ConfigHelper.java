@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ConfigHelper {
 
-    public static final long MIN_INTERVALO_MS = 5000L;
+    public static final long MIN_INTERVALO_MS = 1000L;
     private static final int[] MARCOS_PADRAO = {10, 5, 2, 1};
     private static final long BLOCKER_PADRAO_MS = 12000L;
     private static final long WATCHDOG_PADRAO_MS = 15000L;
