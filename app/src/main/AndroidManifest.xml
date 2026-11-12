@@ -62,6 +62,12 @@
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
         <activity
+            android:name=".AutostartActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
             android:name=".AboutActivity"
             android:exported="false"
             android:excludeFromRecents="true"

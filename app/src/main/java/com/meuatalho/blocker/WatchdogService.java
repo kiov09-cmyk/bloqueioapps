@@ -59,6 +59,14 @@ public class WatchdogService extends Service {
         handler.removeCallbacks(checagem);
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        Log.d(TAG, "onTaskRemoved: app removido dos recentes, zerando liberacoes e indo para Home");
+        zerarLiberacoes();
+        irParaHome();
+    }
+
     private void verificar() {
         boolean ativo = servicoDeAcessibilidadeAtivo();
         if (!ativo) {
