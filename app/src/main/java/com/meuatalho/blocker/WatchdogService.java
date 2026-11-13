@@ -68,11 +68,15 @@ public class WatchdogService extends Service {
     }
 
     private void verificar() {
-        boolean ativo = servicoDeAcessibilidadeAtivo();
-        if (!ativo) {
-            Log.d(TAG, "BlockerService nao esta ativo, zerando liberacoes e indo para Home");
-            zerarLiberacoes();
-            irParaHome();
+        try {
+            boolean ativo = servicoDeAcessibilidadeAtivo();
+            if (!ativo) {
+                Log.d(TAG, "BlockerService nao esta ativo, zerando liberacoes e indo para Home");
+                zerarLiberacoes();
+                irParaHome();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "erro na verificacao do watchdog: " + e.getMessage(), e);
         }
     }
 

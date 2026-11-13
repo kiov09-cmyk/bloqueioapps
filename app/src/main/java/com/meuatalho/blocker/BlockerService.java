@@ -2,7 +2,11 @@ package com.meuatalho.blocker;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -43,11 +47,17 @@ public class BlockerService extends AccessibilityService {
         }
     };
 
+    private static final String CHANNEL_ACC = "accessibility_channel";
+
     private final Runnable checker = new Runnable() {
         @Override
         public void run() {
-            verificarBloqueio(currentPkg);
-            verificarAvisos();
+            try {
+                verificarBloqueio(currentPkg);
+                verificarAvisos();
+            } catch (Exception e) {
+                Log.e(TAG, "erro no checker: " + e.getMessage(), e);
+            }
             handler.postDelayed(this, ConfigHelper.getIntervaloBlocker(BlockerService.this));
         }
     };
@@ -69,8 +79,52 @@ public class BlockerService extends AccessibilityService {
         Log.d(TAG, "homePkg=" + homePkg);
 
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationManager nm = getSystemService(NotificationManager.class);
+                NotificationChannel ch = new NotificationChannel(
+                        CHANNEL_ACC, "Monitor de Acessibilidade", NotificationManager.IMPORTANCE_MIN);
+                nm.createNotificationChannel(ch);
+            }
+            Notification notification = new Notification.Builder(this, CHANNEL_ACC)
+                    .setContentTitle("Proteção Ativa")
+                    .setContentText("O monitor de acessibilidade está rodando.")
+                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                    .setOngoing(true)
+                    .build();
+            startForeground(9002, notification);
+        } catch (Exception e) {
+            Log.e(TAG, "falha ao iniciar foreground da acessibilidade: " + e.getMessage(), e);
+        }
+
         handler.removeCallbacks(checker);
         handler.post(checker);
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        try {
+            Log.d(TAG, "onTaskRemoved no BlockerService: zerando liberacoes e indo para Home");
+            zerarLiberacoes();
+            Intent home = new Intent(Intent.ACTION_MAIN);
+            home.addCategory(Intent.CATEGORY_HOME);
+            home.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(home);
+        } catch (Exception e) {
+            Log.e(TAG, "erro no onTaskRemoved: " + e.getMessage(), e);
+        }
+    }
+
+    private void zerarLiberacoes() {
+        SharedPreferences prefs = getSharedPreferences(MainActivity.PREFS, MODE_PRIVATE | MODE_MULTI_PROCESS);
+        Set<String> blocked = prefs.getStringSet("blocked_apps", new HashSet<>());
+        SharedPreferences.Editor ed = prefs.edit();
+        for (String pkg : blocked) {
+            ed.putLong("unlock_" + pkg, 0L);
+        }
+        ed.apply();
     }
 
     @Override
